@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Treino de Tabuada</title>
+<style>
+  :root{
+    --azul:#1f4e79; --azul2:#2e75b6; --verde:#1e8a4c; --verde-claro:#d4edda;
+    --vermelho:#c0392b; --vermelho-claro:#f8d7da; --amarelo:#fff3cd;
+    --fundo:#f3f6fa; --cartao:#ffffff; --texto:#1c2430; --suave:#5d6b7a; --borda:#d8e0ea;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--fundo);color:var(--texto);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+  .topo{background:var(--azul);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .marca{font-weight:700;font-size:18px}
+  .status{font-size:12px;background:rgba(255,255,255,.15);padding:4px 10px;border-radius:20px;white-space:nowrap}
+  .demo{background:#7a4b00;color:#fff;text-align:center;font-size:12px;padding:4px}
+  main{max-width:560px;margin:0 auto;padding:16px}
+  .tela{display:none}
+  .tela.ativa{display:block}
+  .cartao{background:var(--cartao);border:1px solid var(--borda);border-radius:14px;padding:18px;margin-bottom:14px}
+  h1{font-size:22px;margin:0 0 6px}
+  h2{font-size:17px;margin:0 0 10px}
+  p{margin:6px 0;line-height:1.45}
+  .suave{color:var(--suave);font-size:14px}
+  label{display:block;font-weight:600;margin:12px 0 6px}
+  input,select{width:100%;font-size:17px;padding:12px;border:1px solid var(--borda);border-radius:10px;background:#fff;color:var(--texto)}
+  button{font:inherit;cursor:pointer}
+  .btn{width:100%;border:0;border-radius:12px;padding:14px;font-size:17px;font-weight:700;background:var(--azul2);color:#fff;margin-top:16px}
+  .btn:disabled{opacity:.5}
+  .btn.sec{background:#e7edf5;color:var(--azul)}
+  .erro{color:var(--vermelho);font-weight:600;margin-top:10px;min-height:20px}
+  .pontos{display:flex;align-items:baseline;gap:6px}
+  .pontos b{font-size:40px;color:var(--azul)}
+  .barra{height:10px;background:#e7edf5;border-radius:6px;overflow:hidden;margin-top:8px}
+  .barra i{display:block;height:100%;background:var(--verde);width:0;transition:width .4s}
+  .modos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .modo{border:2px solid var(--borda);background:#fff;border-radius:12px;padding:10px;text-align:left}
+  .modo b{display:block;font-size:15px}
+  .modo span{font-size:12px;color:var(--suave)}
+  .modo.sel{border-color:var(--azul2);background:#eaf2fb}
+  .grade{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .tab{border:1px solid var(--borda);background:#fff;border-radius:12px;padding:12px;text-align:left;position:relative}
+  .tab b{font-size:16px;display:block}
+  .tab .pts{display:flex;gap:5px;margin:8px 0 4px}
+  .tab .pts i{width:14px;height:14px;border-radius:50%;border:2px solid var(--verde);display:inline-block}
+  .tab .pts i.f{background:var(--verde)}
+  .tab small{font-size:12px;color:var(--suave)}
+  .tab.ok{background:var(--verde-claro);border-color:#9fd3b0}
+  .tab.ok small{color:var(--verde);font-weight:700}
+  .tab.mista{grid-column:1/-1}
+  .tab.bloq{opacity:.55}
+  .dica{font-size:13px;color:var(--suave);margin-top:10px}
+  /* sessão */
+  .cab-sessao{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--suave);margin-bottom:8px}
+  .conta{font-size:44px;font-weight:800;text-align:center;margin:18px 0 8px;letter-spacing:1px}
+  .resposta{font-size:40px;font-weight:800;text-align:center;min-height:62px;border:2px solid var(--borda);border-radius:12px;background:#fff;padding:6px;margin:0 auto 12px;max-width:220px}
+  .resposta.certo{border-color:var(--verde);background:var(--verde-claro)}
+  .resposta.errado{border-color:var(--vermelho);background:var(--vermelho-claro)}
+  .feedback{text-align:center;font-weight:700;min-height:24px;margin-bottom:8px}
+  .teclado{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .teclado button{font-size:26px;font-weight:700;padding:14px 0;border:1px solid var(--borda);border-radius:12px;background:#fff;color:var(--texto)}
+  .teclado button:active{background:#e7edf5}
+  .teclado .ok{background:var(--verde);color:#fff;border-color:var(--verde)}
+  .teclado .apagar{background:#e7edf5}
+  .progresso-sessao{display:flex;gap:4px;margin-bottom:6px}
+  .progresso-sessao i{flex:1;height:6px;border-radius:3px;background:#e7edf5}
+  .progresso-sessao i.c{background:var(--verde)}
+  .progresso-sessao i.e{background:var(--vermelho)}
+  .progresso-sessao i.a{background:var(--azul2)}
+  /* resultado */
+  .grande{font-size:48px;font-weight:800;text-align:center;margin:6px 0}
+  .selo{text-align:center;font-weight:700;padding:10px;border-radius:10px;margin:10px 0}
+  .selo.bom{background:var(--verde-claro);color:var(--verde)}
+  .selo.ruim{background:var(--amarelo);color:#7a5b00}
+  ul.erros{padding-left:20px;margin:6px 0}
+  ul.erros li{margin:3px 0}
+  .envio{font-size:13px;text-align:center;color:var(--suave);margin-top:8px}
+  .rodape{text-align:center;margin-top:6px}
+  .modal-fundo{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .modal{background:#fff;border-radius:14px;padding:18px;max-width:380px;width:100%}
+  .modal p{font-size:16px;margin:0 0 4px}
+  .modal-botoes{display:flex;gap:8px}
+  .modal-botoes .btn{margin-top:12px}
+  .link{background:none;border:0;color:var(--azul2);text-decoration:underline;font-size:14px;padding:8px}
+</style>
+</head>
+<body>
+<div id="aviso-demo" class="demo" hidden>Modo demonstração: os dados ficam só neste aparelho e não vão para a planilha.</div>
+<header class="topo">
+  <div class="marca">Treino de Tabuada</div>
+  <div id="status" class="status"></div>
+</header>
+
+<main>
+  <!-- ENTRADA -->
+  <section id="tela-entrada" class="tela">
+    <div class="cartao">
+      <h1>Bem-vindo!</h1>
+      <p class="suave">Preencha uma única vez. Depois o app lembra de você neste aparelho.</p>
+      <label for="in-turma">Turma</label>
+      <select id="in-turma"><option value="">Escolha a turma</option></select>
+      <label for="in-nome">Nome e sobrenome</label>
+      <input id="in-nome" autocomplete="name" placeholder="Ex.: Maria da Silva">
+      <label for="in-codigo">Código da turma</label>
+      <input id="in-codigo" autocapitalize="characters" placeholder="Informado pelo professor">
+      <div id="erro-entrada" class="erro"></div>
+      <button id="bt-entrar" class="btn">Entrar</button>
+    </div>
+  </section>
+
+  <!-- PAINEL -->
+  <section id="tela-painel" class="tela">
+    <div class="cartao">
+      <p class="suave" id="ola"></p>
+      <div class="pontos"><b id="pontos">0</b><span>de 10 pontos</span></div>
+      <div class="barra"><i id="barra"></i></div>
+    </div>
+    <div class="cartao">
+      <h2>Modo</h2>
+      <div class="modos">
+        <button class="modo sel" data-modo="treino"><b>Valendo ponto</b><span>Sem tempo. Conta para a nota.</span></button>
+        <button class="modo" data-modo="desafio"><b>Desafio</b><span>Cronometrado. Só para treinar.</span></button>
+      </div>
+    </div>
+    <div class="cartao">
+      <h2>Missões</h2>
+      <p class="suave">Cada tabuada vale 1 ponto: acerte 9 de 10 contas em <b>3 dias diferentes</b>.</p>
+      <div class="grade" id="grade"></div>
+      <p class="dica">Sugestão de ordem: 2 e 5, depois 3, 4 e 6, e por último 7, 8 e 9.</p>
+    </div>
+    <div class="rodape"><button class="link" id="bt-sair">Não sou eu / trocar aluno</button></div>
+  </section>
+
+  <!-- SESSÃO -->
+  <section id="tela-sessao" class="tela">
+    <div class="cartao">
+      <div class="cab-sessao"><span id="titulo-sessao"></span><span id="cronometro"></span></div>
+      <div class="progresso-sessao" id="prog-sessao"></div>
+      <div class="conta" id="conta"></div>
+      <div class="resposta" id="resposta"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="teclado" id="teclado"></div>
+    </div>
+    <div class="rodape"><button class="link" id="bt-desistir">Sair desta sessão</button></div>
+  </section>
+
+  <!-- RESULTADO -->
+  <section id="tela-resultado" class="tela">
+    <div class="cartao">
+      <h2 id="res-titulo"></h2>
+      <div class="grande" id="res-acertos"></div>
+      <div id="res-selo" class="selo"></div>
+      <div id="res-erros"></div>
+      <div id="res-envio" class="envio"></div>
+      <button class="btn" id="bt-repetir">Fazer de novo</button>
+      <button class="btn sec" id="bt-voltar">Voltar às missões</button>
+    </div>
+  </section>
+</main>
+
+<script>
+/* =====================================================================
+   ÚNICA LINHA PARA PREENCHER: cole entre as aspas o link do App da Web
+   (Apps Script > Implantar > Gerenciar implantações > URL terminada em /exec)
+   ===================================================================== */
+var LINK_DA_PLANILHA = "https://script.google.com/macros/s/AKfycbwt38Of7e1XIA3VFYQpPNeKKEfljtn7djl3GphWb3O1ZfL6xcBKjDPxaBToFzACPKjdoA/exec";
+
+(function(){
+  var CFG = { TURMAS:['6º EJA','8º EJA','8º Regular'], TABUADAS:[2,3,4,5,6,7,8,9],
+              QUESTOES:10, MIN:9, SESS_TAB:3, SESS_MISTA:2, PONTOS_TAB:1, PONTOS_MISTA:2, TOTAL:10 };
+  var DENTRO_APPS_SCRIPT = !!(window.google && google.script && google.script.run);
+  var API = String(LINK_DA_PLANILHA||'').trim();
+  var DEMO = !API && !DENTRO_APPS_SCRIPT;
+  var CHAVE_LOCAL = 'tabuada_v1';
+
+  // ---------- armazenamento local ----------
+  var memoria = null;
+  function lerLocal(k){ try{ return localStorage.getItem(k); }catch(e){ return memoria && memoria[k]; } }
+  function gravarLocal(k,v){ try{ localStorage.setItem(k,v); }catch(e){ memoria = memoria||{}; memoria[k]=v; } }
+  function removerLocal(k){ try{ localStorage.removeItem(k); }catch(e){ if(memoria) delete memoria[k]; } }
+
+  var estado = (function(){
+    try{ var v = JSON.parse(lerLocal(CHAVE_LOCAL)); if(v && v.fila) return v; }catch(e){}
+    return { aluno:null, fila:[], erros:{}, sessoesServidor:[] };
+  })();
+  function salvar(){ gravarLocal(CHAVE_LOCAL, JSON.stringify(estado)); }
+
+  // ---------- comunicação com a planilha ----------
+  function chamar(fn){
+    var args = Array.prototype.slice.call(arguments,1);
+    if (DEMO) return Demo[fn].apply(null,args);
+    if (API) {
+      // credentials:'omit' = não envia as contas Google do aparelho (evita o erro de várias contas)
+      return fetch(API, { method:'POST', credentials:'omit', redirect:'follow',
+                          headers:{'Content-Type':'text/plain;charset=utf-8'},
+                          body: JSON.stringify({acao:fn, args:args}) })
+        .then(function(r){ return r.json(); })
+        .then(function(r){ if(!r.ok) throw new Error(r.erro||'Erro na planilha.'); return r.dados; });
+    }
+    return new Promise(function(ok,falha){
+      var r = google.script.run.withSuccessHandler(ok).withFailureHandler(falha);
+      r[fn].apply(r,args);
+    });
+  }
+
+  // Simulação local, usada só quando o arquivo é aberto fora do Apps Script
+  var Demo = {
+    codigos:{'6º EJA':'EJA6','8º EJA':'EJA8','8º Regular':'REG8'},
+    lista:function(){ try{ return JSON.parse(lerLocal('tabuada_demo')||'[]'); }catch(e){ return []; } },
+    entrar:function(turma,codigo,nome){
+      return new Promise(function(ok,falha){ setTimeout(function(){
+        if(!Demo.codigos[turma]) return falha(new Error('Turma inválida.'));
+        if(String(codigo).trim().toUpperCase()!==Demo.codigos[turma]) return falha(new Error('Código da turma incorreto. Confira com o professor.'));
+        var n = String(nome).replace(/\s+/g,' ').trim();
+        if(n.split(' ').length<2) return falha(new Error('Digite nome e sobrenome.'));
+        var chave = turma+'|'+n.toLowerCase();
+        ok({turma:turma,nome:n,chave:chave,sessoes:Demo.lista().filter(function(s){return s.chave===chave;})});
+      },300); });
+    },
+    registrarSessoes:function(lista,chave){
+      return new Promise(function(ok){ setTimeout(function(){
+        var l = Demo.lista(), ids={};
+        l.forEach(function(s){ ids[s.id]=1; });
+        lista.forEach(function(s){ if(!ids[s.id] && s.valida) l.push({id:s.id,chave:chave,t:s.tabuada,dia:s.dia}); });
+        gravarLocal('tabuada_demo',JSON.stringify(l));
+        ok({recebidos:lista.map(function(s){return s.id;}), sessoes:l.filter(function(s){return s.chave===chave;})});
+      },400); });
+    }
+  };
+
+  // ---------- utilidades ----------
+  function $(id){ return document.getElementById(id); }
+  // caixas de aviso próprias (alert/confirm são bloqueados quando o app está incorporado em sites)
+  function aviso(msg, comCancelar){
+    return new Promise(function(ok){
+      var f=document.createElement('div'); f.className='modal-fundo';
+      f.innerHTML='<div class="modal"><p></p><div class="modal-botoes">'+
+        (comCancelar?'<button class="btn sec" data-r="0">Cancelar</button>':'')+
+        '<button class="btn" data-r="1">OK</button></div></div>';
+      f.querySelector('p').textContent=msg;
+      f.addEventListener('click',function(e){ var b=e.target.closest('[data-r]'); if(!b) return; document.body.removeChild(f); ok(b.getAttribute('data-r')==='1'); });
+      document.body.appendChild(f);
+    });
+  }
+  function esc(t){ return String(t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function hoje(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function embaralhar(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var x=a[i]; a[i]=a[j]; a[j]=x; } return a; }
+  function nomeTab(t){ return t==='M' ? 'Missão final (mista)' : 'Tabuada do '+t; }
+  function mostrar(id){
+    ['tela-entrada','tela-painel','tela-sessao','tela-resultado'].forEach(function(t){ $(t).classList.toggle('ativa', t===id); });
+    window.scrollTo(0,0);
+  }
+
+  // ---------- progresso ----------
+  function progresso(){
+    var validas = (estado.sessoesServidor||[]).concat(
+      estado.fila.filter(function(s){ return s.valida; }).map(function(s){ return {t:s.tabuada, dia:s.dia}; }));
+    var dias = {};
+    validas.forEach(function(s){ var k=String(s.t); (dias[k]=dias[k]||{})[s.dia]=true; });
+    var d = hoje(), tab = {}, pontos = 0, todas = true;
+    CFG.TABUADAS.forEach(function(t){
+      var ds = dias[t]||{}, n = Math.min(Object.keys(ds).length, CFG.SESS_TAB);
+      tab[t] = {n:n, ok:n>=CFG.SESS_TAB, hoje:!!ds[d]};
+      if(tab[t].ok) pontos += CFG.PONTOS_TAB; else todas = false;
+    });
+    var dm = dias.M||{}, nm = Math.min(Object.keys(dm).length, CFG.SESS_MISTA);
+    var mista = {n:nm, ok:todas && nm>=CFG.SESS_MISTA, liberada:todas, hoje:!!dm[d]};
+    if(mista.ok) pontos += CFG.PONTOS_MISTA;
+    return {tab:tab, mista:mista, pontos:pontos};
+  }
+
+  // ---------- painel ----------
+  var modo = 'treino';
+  function bolinhas(n,max){ var h=''; for(var i=0;i<max;i++) h+='<i class="'+(i<n?'f':'')+'"></i>'; return h; }
+  function textoStatus(p,max){
+    if(p.ok) return 'Concluída ✔';
+    if(p.hoje) return 'Hoje já contou. Volte amanhã.';
+    return p.n+' de '+max+' dias';
+  }
+  function desenharPainel(){
+    var p = progresso();
+    $('ola').textContent = estado.aluno.nome+' · '+estado.aluno.turma;
+    $('pontos').textContent = p.pontos;
+    $('barra').style.width = (p.pontos/CFG.TOTAL*100)+'%';
+    var h = '';
+    CFG.TABUADAS.forEach(function(t){
+      var x = p.tab[t];
+      h += '<button class="tab'+(x.ok?' ok':'')+'" data-tab="'+t+'"><b>Tabuada do '+t+'</b>'+
+           '<div class="pts">'+bolinhas(x.n,CFG.SESS_TAB)+'</div><small>'+textoStatus(x,CFG.SESS_TAB)+'</small></button>';
+    });
+    var m = p.mista;
+    h += '<button class="tab mista'+(m.ok?' ok':'')+(m.liberada?'':' bloq')+'" data-tab="M"><b>Missão final: todas misturadas (2 pontos)</b>'+
+         '<div class="pts">'+bolinhas(m.n,CFG.SESS_MISTA)+'</div><small>'+
+         (m.liberada ? textoStatus(m,CFG.SESS_MISTA) : 'Liberada quando as 8 tabuadas estiverem concluídas')+'</small></button>';
+    $('grade').innerHTML = h;
+    atualizarStatus();
+  }
+  $('grade').addEventListener('click', function(e){
+    var b = e.target.closest('.tab'); if(!b) return;
+    var t = b.getAttribute('data-tab');
+    if(t==='M'){ if(!progresso().mista.liberada){ aviso('A missão final é liberada quando você concluir as 8 tabuadas.'); return; } }
+    else t = Number(t);
+    iniciarSessao(t);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.modo'), function(b){
+    b.addEventListener('click', function(){
+      modo = b.getAttribute('data-modo');
+      Array.prototype.forEach.call(document.querySelectorAll('.modo'), function(x){ x.classList.toggle('sel', x===b); });
+    });
+  });
+
+  // ---------- sessão ----------
+  var sessao = null, timerId = null;
+  function gerarQuestoes(t){
+    var chave = String(t), erros = (estado.erros[chave]||[]).slice(), lista;
+    if(t==='M'){
+      var pool = [];
+      CFG.TABUADAS.forEach(function(a){ for(var b=1;b<=10;b++) pool.push([a,b]); });
+      embaralhar(pool);
+      lista = embaralhar(erros.slice(0,4));
+      var usados = {}; lista.forEach(function(q){ usados[q.join('x')]=1; });
+      for(var i=0;i<pool.length && lista.length<CFG.QUESTOES;i++){ var k=pool[i].join('x'); if(!usados[k]){ usados[k]=1; lista.push(pool[i]); } }
+    } else {
+      var errados = {}; erros.forEach(function(q){ errados[q[1]]=1; });
+      var primeiro = [], resto = [];
+      for(var b=1;b<=10;b++) (errados[b]?primeiro:resto).push([t,b]);
+      lista = embaralhar(primeiro).concat(embaralhar(resto));
+    }
+    return lista.map(function(q){ var inv = q[1]!==q[0] && Math.random()<0.3; return {a:inv?q[1]:q[0], b:inv?q[0]:q[1], par:q}; });
+  }
+  function iniciarSessao(t){
+    sessao = { t:t, modo:modo, questoes:gerarQuestoes(t), i:0, resp:[], digitado:'', bloqueado:false, inicio:Date.now(), tq:0 };
+    $('titulo-sessao').textContent = nomeTab(t)+(modo==='desafio'?' · Desafio':'');
+    $('cronometro').textContent = '';
+    clearInterval(timerId);
+    if(modo==='desafio'){ timerId = setInterval(function(){ $('cronometro').textContent = '⏱ '+Math.floor((Date.now()-sessao.inicio)/1000)+'s'; },250); }
+    mostrar('tela-sessao');
+    mostrarQuestao();
+  }
+  function desenharProgSessao(){
+    var h=''; for(var i=0;i<CFG.QUESTOES;i++){ var r=sessao.resp[i]; h+='<i class="'+(r?(r.certo?'c':'e'):(i===sessao.i?'a':''))+'"></i>'; }
+    $('prog-sessao').innerHTML = h;
+  }
+  function mostrarQuestao(){
+    var q = sessao.questoes[sessao.i];
+    sessao.digitado=''; sessao.bloqueado=false; sessao.tq=Date.now();
+    $('conta').textContent = q.a+' × '+q.b;
+    $('resposta').textContent=''; $('resposta').className='resposta';
+    $('feedback').textContent=''; $('feedback').style.color='';
+    desenharProgSessao();
+  }
+  function digitar(d){
+    if(!sessao||sessao.bloqueado) return;
+    if(d==='⌫'){ sessao.digitado = sessao.digitado.slice(0,-1); }
+    else if(d==='OK'){ return confirmar(); }
+    else if(sessao.digitado.length<3){ sessao.digitado += d; }
+    $('resposta').textContent = sessao.digitado;
+  }
+  function confirmar(){
+    if(!sessao.digitado) return;
+    sessao.bloqueado = true;
+    var q = sessao.questoes[sessao.i], certo = Number(sessao.digitado)===q.a*q.b;
+    sessao.resp.push({q:q, r:Number(sessao.digitado), certo:certo, ms:Date.now()-sessao.tq});
+    $('resposta').className = 'resposta '+(certo?'certo':'errado');
+    $('feedback').textContent = certo ? 'Certo!' : 'Resposta certa: '+q.a+' × '+q.b+' = '+(q.a*q.b);
+    $('feedback').style.color = certo ? 'var(--verde)' : 'var(--vermelho)';
+    desenharProgSessao();
+    setTimeout(function(){
+      sessao.i++;
+      if(sessao.i<CFG.QUESTOES) mostrarQuestao(); else finalizar();
+    }, certo?700:1800);
+  }
+  (function montarTeclado(){
+    var teclas=['1','2','3','4','5','6','7','8','9','⌫','0','OK'], h='';
+    teclas.forEach(function(k){ h+='<button data-k="'+k+'" class="'+(k==='OK'?'ok':k==='⌫'?'apagar':'')+'">'+k+'</button>'; });
+    $('teclado').innerHTML=h;
+    $('teclado').addEventListener('click',function(e){ var b=e.target.closest('button'); if(b) digitar(b.getAttribute('data-k')); });
+    document.addEventListener('keydown',function(e){
+      if(!$('tela-sessao').classList.contains('ativa')) return;
+      if(/^[0-9]$/.test(e.key)) digitar(e.key);
+      else if(e.key==='Backspace') digitar('⌫');
+      else if(e.key==='Enter') digitar('OK');
+    });
+  })();
+  $('bt-desistir').addEventListener('click',function(){
+    aviso('Sair agora? Esta sessão não será contada.', true).then(function(sim){
+      if(sim){ clearInterval(timerId); sessao=null; desenharPainel(); mostrar('tela-painel'); }
+    });
+  });
+
+  function finalizar(){
+    clearInterval(timerId);
+    var acertos = sessao.resp.filter(function(r){return r.certo;}).length;
+    var tempoSeg = Math.round(sessao.resp.reduce(function(s,r){return s+r.ms;},0)/1000);
+    var erradas = sessao.resp.filter(function(r){return !r.certo;});
+    var antes = progresso();
+    var valida = sessao.modo==='treino' && acertos>=CFG.MIN;
+    var registro = {
+      id: Date.now().toString(36)+Math.random().toString(36).slice(2,8),
+      turma: estado.aluno.turma, nome: estado.aluno.nome, codigo: estado.aluno.codigo,
+      tabuada: sessao.t, modo: sessao.modo, acertos: acertos, total: CFG.QUESTOES, valida: valida,
+      tempoSeg: tempoSeg, dia: hoje(), dataAparelho: new Date().toISOString(),
+      erros: erradas.map(function(r){ return r.q.a+'×'+r.q.b+'='+r.r; }).join('; ')
+    };
+    estado.erros[String(sessao.t)] = erradas.map(function(r){ return r.q.par; });
+    estado.fila.push(registro);
+    salvar();
+
+    var depois = progresso();
+    $('res-titulo').textContent = nomeTab(sessao.t)+(sessao.modo==='desafio'?' · Desafio':'');
+    $('res-acertos').textContent = acertos+' / '+CFG.QUESTOES;
+    var selo = $('res-selo'), item = sessao.t==='M' ? 'mista' : null;
+    var pa = item ? antes.mista : antes.tab[sessao.t], pd = item ? depois.mista : depois.tab[sessao.t];
+    var max = item ? CFG.SESS_MISTA : CFG.SESS_TAB;
+    if(sessao.modo==='desafio'){
+      selo.className='selo bom'; selo.textContent='Tempo: '+tempoSeg+' segundos. (Desafio não conta ponto.)';
+    } else if(!valida){
+      selo.className='selo ruim'; selo.textContent='Faltou pouco! São necessários '+CFG.MIN+' acertos. Tente de novo.';
+    } else if(pd.ok && !pa.ok){
+      selo.className='selo bom'; selo.textContent='Missão concluída! Você ganhou '+(item?CFG.PONTOS_MISTA+' pontos':'1 ponto')+'.';
+    } else if(pd.n>pa.n){
+      selo.className='selo bom'; selo.textContent='Sessão válida! Dia '+pd.n+' de '+max+' contado.';
+    } else if(pa.ok){
+      selo.className='selo bom'; selo.textContent='Ótimo treino! Esta missão já está concluída.';
+    } else {
+      selo.className='selo bom'; selo.textContent='Sessão válida! Hoje já estava contado. Volte amanhã para o próximo dia.';
+    }
+    $('res-erros').innerHTML = erradas.length
+      ? '<p><b>Revise:</b> (estas contas aparecem primeiro na próxima vez)</p><ul class="erros">'+
+        erradas.map(function(r){ return '<li>'+r.q.a+' × '+r.q.b+' = <b>'+(r.q.a*r.q.b)+'</b> <span class="suave">(você: '+r.r+')</span></li>'; }).join('')+'</ul>'
+      : '<p style="text-align:center">Nenhum erro. Parabéns!</p>';
+    $('res-envio').textContent = 'Enviando resultado…';
+    mostrar('tela-resultado');
+    enviarFila();
+  }
+  $('bt-repetir').addEventListener('click',function(){ iniciarSessao(sessao.t); });
+  $('bt-voltar').addEventListener('click',function(){ desenharPainel(); mostrar('tela-painel'); });
+
+  // ---------- envio com fila (funciona sem internet) ----------
+  var enviando = false;
+  function atualizarStatus(){
+    var n = estado.fila.length;
+    $('status').textContent = !estado.aluno ? '' : n ? n+' aguardando envio' : 'Tudo enviado ✓';
+    if($('tela-resultado').classList.contains('ativa')){
+      $('res-envio').textContent = n ? 'Sem conexão no momento: o resultado ficou guardado neste aparelho e será enviado automaticamente quando houver internet.'
+                                     : 'Resultado enviado ao professor ✓';
+    }
+  }
+  function enviarFila(){
+    if(enviando || !estado.aluno || !estado.fila.length){ atualizarStatus(); return; }
+    enviando = true;
+    var lote = estado.fila.slice();
+    chamar('registrarSessoes', lote, estado.aluno.chave).then(function(r){
+      var ok = {}; (r.recebidos||[]).forEach(function(id){ ok[id]=1; });
+      estado.fila = estado.fila.filter(function(s){ return !ok[s.id]; });
+      if(r.sessoes) estado.sessoesServidor = r.sessoes;
+      salvar();
+    }).catch(function(){}).then(function(){
+      enviando = false; atualizarStatus();
+      if($('tela-painel').classList.contains('ativa')) desenharPainel();
+    });
+  }
+  window.addEventListener('online', enviarFila);
+  setInterval(enviarFila, 30000);
+
+  // ---------- entrada ----------
+  CFG.TURMAS.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent=t; $('in-turma').appendChild(o); });
+  $('bt-entrar').addEventListener('click',function(){
+    var turma=$('in-turma').value, nome=$('in-nome').value, codigo=$('in-codigo').value;
+    $('erro-entrada').textContent='';
+    if(!turma){ $('erro-entrada').textContent='Escolha a turma.'; return; }
+    if(nome.trim().split(/\s+/).length<2){ $('erro-entrada').textContent='Digite nome e sobrenome.'; return; }
+    $('bt-entrar').disabled=true; $('bt-entrar').textContent='Entrando…';
+    chamar('entrar',turma,codigo,nome).then(function(r){
+      estado = { aluno:{turma:r.turma,nome:r.nome,chave:r.chave,codigo:codigo.trim().toUpperCase()}, fila:[], erros:{}, sessoesServidor:r.sessoes||[] };
+      salvar(); desenharPainel(); mostrar('tela-painel');
+    }).catch(function(e){
+      $('erro-entrada').textContent = (e && e.message) ? e.message : 'Sem conexão. Verifique a internet e tente de novo.';
+    }).then(function(){ $('bt-entrar').disabled=false; $('bt-entrar').textContent='Entrar'; });
+  });
+  $('bt-sair').addEventListener('click',function(){
+    if(estado.fila.length){ aviso('Ainda há resultados aguardando envio. Conecte-se à internet antes de trocar de aluno.'); enviarFila(); return; }
+    aviso('Sair deste aparelho? Seu progresso continua salvo na planilha do professor.', true).then(function(sim){ if(sim) sairDoAparelho(); });
+  });
+  function sairDoAparelho(){
+    removerLocal(CHAVE_LOCAL);
+    estado = { aluno:null, fila:[], erros:{}, sessoesServidor:[] };
+    $('in-nome').value=''; $('in-codigo').value=''; $('in-turma').value='';
+    atualizarStatus(); mostrar('tela-entrada');
+  }
+
+  // ---------- início ----------
+  if(DEMO) $('aviso-demo').hidden = false;
+  if(estado.aluno){
+    desenharPainel(); mostrar('tela-painel');
+    // sincroniza o histórico (útil se o aluno usou outro aparelho) e envia pendências
+    chamar('entrar', estado.aluno.turma, estado.aluno.codigo, estado.aluno.nome).then(function(r){
+      estado.sessoesServidor = r.sessoes||[]; salvar(); desenharPainel();
+    }).catch(function(){}).then(enviarFila);
+  } else {
+    mostrar('tela-entrada');
+  }
+})();
+</script>
+</body>
+</html>
